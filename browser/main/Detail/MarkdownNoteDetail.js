@@ -19,6 +19,7 @@ import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
 import FullscreenButton from './FullscreenButton'
+import NewWindowButton from './NewWindowButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
@@ -137,6 +138,7 @@ class MarkdownNoteDetail extends React.Component {
         })
         AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
       })
+    console.log('saving', note)
   }
 
   handleFolderChange (e) {
@@ -397,6 +399,7 @@ class MarkdownNoteDetail extends React.Component {
     const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
+    const { key } = note
 
     const options = []
     data.storageMap.forEach((storage, index) => {
@@ -476,6 +479,8 @@ class MarkdownNoteDetail extends React.Component {
         })()}
 
         <FullscreenButton onClick={(e) => this.handleFullScreenButton(e)} />
+
+        <NewWindowButton noteKey={key} />
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
 

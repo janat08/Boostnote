@@ -265,7 +265,7 @@ class StorageItem extends React.Component {
   dropNote (storage, folder, dispatch, location, noteData) {
     noteData = noteData.filter((note) => folder.key !== note.folder)
     if (noteData.length === 0) return
-
+    // console.log('moving', 123123)
     Promise.all(
       noteData.map((note) => dataApi.moveNote(note.storage, note.key, storage.key, folder.key))
     )

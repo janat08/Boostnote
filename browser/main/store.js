@@ -3,7 +3,14 @@ import { routerReducer } from 'react-router-redux'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import { Map, Set } from 'browser/lib/Mutable'
 import _ from 'lodash'
-
+const electron = require('electron')
+const { ipcRenderer, remote } = electron
+const BrowserWindow = remote.BrowserWindow
+// for if main window is refreshed
+const current = remote.getCurrentWindow().id
+const windows = BrowserWindow.getAllWindows().filter(x => x.id !== current).reduce((a, x) => {
+  return a.set(x.id, x)
+}, new Map())
 function defaultDataMap () {
   return {
     storageMap: new Map(),
@@ -12,12 +19,32 @@ function defaultDataMap () {
     storageNoteMap: new Map(),
     folderNoteMap: new Map(),
     tagNoteMap: new Map(),
-    trashedSet: new Set()
+    trashedSet: new Set(),
+    windows: windows,
+    windowId: current
   }
 }
 
+// event.sender
 function data (state = defaultDataMap(), action) {
+  ipcRenderer.send('dispatch', action)
+  const { type } = action
+  if (type === 'REMOVE_WINDOW') {
+    state.windows.delete(action.window)
+    return state
+  }
+      // console.log(Array.from(state.noteMap.map(x=>x)), Array.from(state.windows.values()))
+  if (action.id === state.windowId) {
+    return state
+  }
+
+  state.windows.forEach((x) => {
+    x.webContents.send('dispatch', Object.assign({}, {id: state.windowId}, action))
+  })
   switch (action.type) {
+    case 'ADD_WINDOW':
+      state.windows.set(action.window.id, action.window)
+      return state
     case 'INIT_ALL':
       state = defaultDataMap()
 
@@ -471,5 +498,12 @@ const reducer = combineReducers({
 })
 
 const store = createStore(reducer)
-
+// ipcMain.on('dispatch', (event, action) => { console.log(123, action); store.dispatch(action) });
+ipcRenderer.on('dispatch', (event, action) => {
+  if (action.tye === '@@router/LOCATION_CHANGE') { return };
+  // console.log(123123, action, )
+  store.dispatch(action)
+})
+window.store = store
 export default store
+

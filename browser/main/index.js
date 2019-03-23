@@ -96,6 +96,32 @@ function updateApp () {
   }
 }
 
+console.log(1111, window.location)
+const query = parseQueryString(window.location.hash)
+history.push({
+  query: {
+    key: query.key,
+    newWindow: query.newWindow
+  }
+})
+
+function parseQueryString (url) {
+  const queryString = url.substring(url.indexOf('?') + 1)
+  var params = {}
+  var queries
+  var temp
+  var i
+  var l
+  // Split into key/value pairs
+  queries = queryString.split('&')
+  // Convert the array of strings into an object
+  for (i = 0, l = queries.length; i < l; i++) {
+    temp = queries[i].split('=')
+    params[temp[0]] = temp[1]
+  }
+  return params
+};
+
 ReactDOM.render((
   <Provider store={store}>
     <Router history={history}>

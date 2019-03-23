@@ -127,14 +127,16 @@ class NoteList extends React.Component {
   }
 
   componentDidUpdate (prevProps) {
+    // console.log("isupdating",111)
     const { location } = this.props
     const { selectedNoteKeys } = this.state
     const visibleNoteKeys = this.notes.map(note => note.key)
     const note = this.notes[0]
     const prevKey = prevProps.location.query.key
     const noteKey = visibleNoteKeys.includes(prevKey) ? prevKey : note && note.key
-
+// console.log(111, window.location, location.query, note, noteKey, visibleNoteKeys)
     if (note && location.query.key == null) {
+      console.log('none')
       const { router } = this.context
       if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
 
@@ -156,6 +158,8 @@ class NoteList extends React.Component {
 
     // Auto scroll
     if (_.isString(location.query.key) && prevProps.location.query.key === location.query.key) {
+      // console.log(111)
+
       const targetIndex = this.getTargetIndex()
       if (targetIndex > -1) {
         const list = this.refs.list

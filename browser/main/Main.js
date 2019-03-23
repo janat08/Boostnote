@@ -30,6 +30,7 @@ class Main extends React.Component {
     }
 
     const { config } = props
+    // const { router } = context
 
     this.state = {
       isRightSliderFocused: false,
@@ -298,11 +299,26 @@ class Main extends React.Component {
   }
 
   render () {
-    const { config } = this.props
-
+    const { config, location } = this.props
+    const {newWindow} = location.query
+    console.log(12312333333, newWindow)
+    if (newWindow) {
+      return (
+        <Detail
+          style={{ left: this.state.listWidth }}
+          {..._.pick(this.props, [
+            'dispatch',
+            'data',
+            'config',
+            'params',
+            'location'
+          ])}
+          ignorePreviewPointerEvents={this.state.isRightSliderFocused}
+        />
+      )
+    }
     // the width of the navigation bar when it is folded/collapsed
     const foldedNavigationWidth = 44
-
     return (
       <div
         className='Main'

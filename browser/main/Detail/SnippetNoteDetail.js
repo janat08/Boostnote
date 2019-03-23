@@ -23,6 +23,7 @@ import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import FullscreenButton from './FullscreenButton'
 import TrashButton from './TrashButton'
 import RestoreButton from './RestoreButton'
+import NewWindowButton from './NewWindowButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import InfoPanel from './InfoPanel'
@@ -31,6 +32,7 @@ import { formatDate } from 'browser/lib/date-formatter'
 import i18n from 'browser/lib/i18n'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import markdownToc from 'browser/lib/markdown-toc-generator'
+import clone from 'clone'
 
 const electron = require('electron')
 const { remote } = electron
@@ -68,10 +70,14 @@ class SnippetNoteDetail extends React.Component {
         enableLeftArrow: allTabs.offsetLeft !== 0
       })
     }
+    window.refss = this.refs['code-' + 0]
     ee.on('code:generate-toc', this.generateToc)
   }
 
   componentWillReceiveProps (nextProps) {
+    const { note } = this.state
+    const { snippets } = note
+    console.log(note)
     if (nextProps.note.key !== this.props.note.key && !this.state.isMovingNote) {
       if (this.saveQueue != null) this.saveNow()
       const nextNote = Object.assign({
@@ -92,6 +98,28 @@ class SnippetNoteDetail extends React.Component {
         this.setState(this.getArrowsState())
       })
     }
+
+    // this if for another window changing global state
+    const nextNote = Object.assign({
+      description: ''
+    }, nextProps.note, {
+      snippets: nextProps.note.snippets.map((snippet) => Object.assign({ linesHighlighted: [] }, {content: snippet.content}, snippet))
+    })
+    nextProps.note.snippets.forEach((a, i) => {
+      this.setState({})
+    })
+
+    this.setState({
+      note: nextNote
+    }, () => {
+      const { snippets } = this.state.note
+      snippets.forEach((snippet, index) => {
+        this.refs['code-' + index].setValue(snippet.content)
+        console.log(this.refs['code-' + index])
+      })
+      if (this.refs.tags) this.refs.tags.reset()
+        // this.setState(this.getArrowsState())
+    })
   }
 
   componentWillUnmount () {
@@ -411,13 +439,14 @@ class SnippetNoteDetail extends React.Component {
   handleCodeChange (index) {
     return (e) => {
       const snippets = this.state.note.snippets.slice()
+      if (snippets[index].content === this.refs['code-' + index].value) {
+        return
+      }
       snippets[index].content = this.refs['code-' + index].value
       snippets[index].linesHighlighted = e.options.linesHighlighted
 
-      this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}))
-      this.setState(state => ({
-        note: state.note
-      }), () => {
+      this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}),
+      () => {
         this.save()
       })
     }
@@ -671,6 +700,7 @@ class SnippetNoteDetail extends React.Component {
   render () {
     const { data, config, location } = this.props
     const { note } = this.state
+    const { key } = note
 
     const storageKey = note.storage
     const folderKey = note.folder
@@ -802,6 +832,8 @@ class SnippetNoteDetail extends React.Component {
         />
 
         <FullscreenButton onClick={(e) => this.handleFullScreenButton(e)} />
+
+        <NewWindowButton noteKey={key} />
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
 
